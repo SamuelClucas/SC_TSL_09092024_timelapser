@@ -3,7 +3,7 @@ imaging system [documented
 here](https://github.com/SamuelClucas/SC_TSL_06082024_Imaging-System)
 
 - See [src/](src/) for class implementations.
-- See [scripts/](scripts/) for interfacing programmes that run the 
+- See [scripts/](scripts/) for utility programmes that run the 
 timelapse.
 
 For a more detailed overview of programme development, see 
