@@ -2,10 +2,15 @@ This repo documents the development of the programme that runs the
 imaging system [documented 
 here](https://github.com/SamuelClucas/SC_TSL_06082024_Imaging-System)
 
-For a more detailed overview of programme development, see 
-Jupyter_Notebooks/README.md.
+- See [src/](src/) for class implementations.
+- See [scripts/](scripts/) for interfacing programmes that run the 
+timelapse.
 
-./camera/ is the virtual environment currently being used for the 
+For a more detailed overview of programme development, see 
+[Jupyter_Notebooks/README.md](Jupyter_Notebooks/README.md).
+
+[camera/](camera/) is the virtual environment currently being used for 
+the 
 project.
 
-See ./tests/ for timelapse test images.
+See [tests/](tests/) for unit testing..
