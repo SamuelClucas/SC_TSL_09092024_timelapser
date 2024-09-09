@@ -1,8 +1,6 @@
 .DS_Store
-<<<<<<< HEAD
-.DS_Store
+
 .venv/
+
 .vscode/
-=======
-.venv/
->>>>>>> c9ece57b7be126f8e50f85047b445c2f09f0956a
+
