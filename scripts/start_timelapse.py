@@ -1,83 +1,85 @@
-from camera.camera_controller import CameraController
-from lighting.neopixel_controller import NeopixelController
-from motor.motor_controller import MotorController
+#!/usr/bin/env python
+
+"""
+
+start_timelapse
+
+A utility for running a timelapse based on specified input parameters.
+
+
+See the help:
+
+    timelapse --help
+
+Usage Examples:
+
+    Basic use:
+        
+"""
+import timelapsEr as tl
+
 import argparse
 import sys, os, time
-import datetime
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 
+parser = argparse.ArgumentParser(
+    prog='TimelapsEr',
+    description='Operator for the imaging system',
+)  
+parser.add_argument("-t", "--timelapse", help="Initiate a timelapse. See manual for additional parameters.", action='store_true')
+parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
+parser.add_argument("-d", "--duration", help="Specify the the total time period you want the system to image for. E.g. the CLI input \"-u  h -d 4\" will create a 4-hour timelapse. ", type=int)
+parser.add_argument("-s", "--samples", help="Specify at how many timepoints you wish to take an image. E.g. \"-i 80\" creates a timelapse with 80 images at evenly spaced timepoints throughout the timelapse", type=int)
+parser.add_argument("-p", "--path", help="Specify a file path to which the timelapse images will be saved. Default = ./\"images\"")
+parser.add_argument("-n", "--name", help="Unique identifier for your timelapse", type=str)
 
-class ImagingSystem:
-    def __init__(self):
-        self.parser = argparse.ArgumentParser(
-            prog='ImagingSystem',
-            description='Operator for the imaging system',
-        )  
-        self.parser.add_argument("-t", "--timelapse", help="Initiate a timelapse. See manual for additional parameters.", action='store_true')
+parser.set_defaults(d = 0)
+parser.set_defaults(i = 0)
+parser.set_defaults(u = 's')
 
-        self.parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
-        self.parser.set_defaults(u = 's')
+args = parser.parse_args()
 
-        self.parser.add_argument("-d", "--duration", help="Specify the the total time period you want the system to image for. E.g. the CLI input \"-u  h -d 4\" will create a 4-hour timelapse. ", type=int)
-        self.parser.set_defaults(d = 0)
-        
+# scaling up timelapse duration to desired time unit (seconds to minutes to hours to days = x * 60 * 60 * 24)
+if args.units == 'm':
+    args.duration *= 60
+elif args.units == 'h':
+    args.duration *= 3600 
+elif args.units == 'd':
+    args.duration *= 86400
 
-        self.parser.add_argument("-s", "--samples", help="Specify at how many timepoints you wish to take an image. E.g. \"-i 80\" creates a timelapse with 80 images at evenly spaced timepoints throughout the timelapse", type=int)
-        self.parser.set_defaults(i = 0)
+if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
+    interval = args.duration / args.samples
 
-        self.parser.add_argument("-p", "--path", help="Specify a file path to which the timelapse images will be saved. Default = ./\"images\"")
-        self.parser.set_defaults(p = 'images')
+saveLocation = os.path.join(args.path, tl.get_date.get_today(), tl.get_date.get_now())
 
-        self.parser.add_argument("-n", "--name", help="Unique identifier for your timelapse", type=str)
+if not os.path.exists(saveLocation):
+    # If current path does not exist in specified save file path, create it
+    os.makedirs(saveLocation)
 
-        self.args = self.parser.parse_args()
+def timelapse(saveLocation):        
+    # instantiate timelapsEr objects
+    cameraController = tl.CameraController(saveLocation) # configures camera module
+    lightController = tl.NeopixelController()
+    motorController = tl.MotorController()
+    # imaging loop
+    for timepoint in range(args.samples):
+        lightController.on()
 
-        # scaling up timelapse duration to desired time unit (seconds to minutes to hours to days = x * 60 * 60 * 24)
-        if self.args.units == 'm':
-            self.args.duration *= 60
-        elif self.args.units == 'h':
-            self.args.duration *= 3600 
-        elif self.args.units == 'd':
-            self.args.duration *= 86400
+        print(f"Taking image {timepoint+1} at {tl.get_date.get_now()}")
+        cameraController.capture_image(timepoint+1)
 
-        if self.args.samples != 0 and self.args.duration != 0:
-            self.interval = self.args.duration / self.args.samples
-        
-        self.currentDate = str(datetime.datetime.today().strftime('%d-%m-%Y'))
+        lightController.off()
+                
+        time.sleep(interval)
+    # cleanup
+    print("Timelapse is complete. Now exiting.")
+    cameraController.picam2.stop()
+    sys.exit(0)
+    
+if __name__ == '__main__':           
+    timelapse(saveLocation)
 
-        self.saveLoc = os.path.join(self.args.path, self.currentDate)
-
-        if not os.path.exists(self.args.path):
-            os.makedirs(self.args.path)
-
-        if not os.path.exists(self.args.path + "/" + self.currentDate):
-            # If current date directory does not exist in specified save file path, create it
-            os.makedirs(self.saveLoc)
-        
-        self.cameraController = CameraController(self.saveLoc) # configures camera module
-        self.lightController = NeopixelController()
-        self.motorController = MotorController()
-        
-    def timelapse(self):
-        for timepoint in range(self.args.samples):
-            self.lightController.on()
-
-            print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%H:%M:%S'))}")
-            self.cameraController.capture_image(timepoint+1)
-
-            self.lightController.off()
-            
-            time.sleep(self.interval)
-        self.cleanup()
-
-    def cleanup(self):
-        print("Timelapse is complete. Now exiting.")
-        self.cameraController.picam2.stop()
-        sys.exit(0)
-            
-system = ImagingSystem()
-system.timelapse()
 
 
 
