@@ -2,7 +2,7 @@ This repo documents the development of the programme that runs the
 imaging system [documented 
 here](https://github.com/SamuelClucas/SC_TSL_06082024_Imaging-System)
 
-- See [src/](src/) for class implementations.
+- See [timelapsEr/](timelapsEr/) for class implementations.
 - See [scripts/](scripts/) for utility programmes that run the 
 timelapse.
 

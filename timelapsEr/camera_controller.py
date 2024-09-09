@@ -3,9 +3,7 @@ from libcamera import controls
 import time
 '''
 See documentation here: https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf
-A camera 'buffer' is the memory used to store image data before/as it is written to a memory card
-The module comes preset with infinite depth of field
-Images are represented as numpy arrays, which is also used by opencv
+
 '''
 
 class CameraController:

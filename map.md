@@ -1,6 +1,6 @@
 TimelapsEr/
 │
-├── src/
+├── timelapsEr/
 │   ├── __init__.py
 │   │
 │   ├── camera_controller.py
