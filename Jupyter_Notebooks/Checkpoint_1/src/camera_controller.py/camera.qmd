@@ -1,0 +1,96 @@
+---
+title: "Camera_controller.py Overview"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+I recommend reading through the [documentation](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf).
+
+**Again:**
+**Something to note:** the code blocks in these documents will not successfully execute, simply because the libraries used (neopixel, picamera2, libcamera) are designed to be installed and run on embedded systems like the raspberry pi. Ignore the errors. Also, any modifications to be made to the code (**in this format**) will be implemented and tested after the initial 'over-the-weekend' timelapse is complete, as I do not want to interrupt it by connecting to the pi. 
+
+Also, if using your own virtual enivronment and not 'camera' provided within the project repository, make sure you enable --system-site-packages. Libcamera must be installed system wide. See the [documentation](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf). If using camera, cd to the project directory and input "source camera/bin/activate". If successful, you should see *(camera)* appear as below:
+```{bash}
+raspberrypi@raspberrypi:~/Desktop $ source camera/bin/activate
+(camera) raspberrypi@raspberrypi:~/Desktop $
+```
+
+The aim for this class is to encapsulate the imaging itself and associated settings. This modular approach isolates the imaging from the timelapse timing logic so that the programme design makes explicit that timing issues likely reside in main.py logic, whereas imaging issues reside likely in the class defined in camera_controller.py.
+
+Firstly import the relevant libraries to drive the pi camera module, as shown in *Listing 1*.
+```{python}
+#| error: true
+#| warning: false
+
+from picamera2 import Picamera2, Preview
+from libcamera import controls
+import time
+```
+*Listing 1* importing libraries used in this class.
+
+*Listing 2* defines the CameraController class and its constructor. Note that this constructor takes the 'path' parameter, as seen when called in main.py. This path is stored in self.saveLoc and will be used to save the image in *Listing 3*.
+
+The camera is initialised using the Picamera() constructor.
+
+The picamera2 library requires some preview window to drive the libcamera system to receive camera buffers before returning them to libcamera. The NULL preview displays nothing, it just drives the camera system. The call to start_preview(Preview.NULL) is redundant (this is the default) and is started automatically, but for the sake of clarity it is included. This NULL preview handles dequeuing camera frames/buffers.
+
+A still image configuration is stored in self.config. Configs are just python dictionaries. 
+
+I am yet to successfully modify the format in which pixels are stored. RGB888 - 24 bits per pixel, ordered [B, G, R] stores pixels as BGR, 24 bits per pixel, as recommended by the picamera2 manual for opencv users.
+
+Stating the format of self.config to {'format': 'XBGR888'} (as on page 21 of the picamera2 manual) returns an error. This will be implemented correctly in checkpoint 2. The default is XBGR8888.
+
+I think I will try the reverse of the .set_controls arguments from [Alison's camera project](https://github.com/AlisonMacFadyen/Camera_project), as I believe this is causing overexposure in low-light conditions. This will be implemented in Checkpoint 2.
+
+I set the quality to 95 - this is the max.
+
+The config dict is printed to standard out and is set for the self.picam2 object. 
+
+Self.picam2.start() gets the camera running.
+```{python}
+class CameraController:
+    def __init__(self, path):
+        self.saveLoc = path
+        # initialise camera
+        self.picam2 = Picamera2()
+
+        self.picam2.start_preview(Preview.NULL) # 
+        
+        self.config = self.picam2.create_still_configuration() # setup config for high-resolution still image capture. 
+        
+        self.picam2.set_controls({"AeEnable": False, "AwbEnable": False, "FrameRate": 1.0}) # from Alison's camera_project
+        self.picam2.options["quality"] = 95
+       
+        print(self.config["main"])
+        
+        self.picam2.configure(self.config)
+        
+        self.picam2.start()
+    # end of class constructor definition
+
+```
+*Listing 2* class constructor for CameraController.
+
+The capture_image method of CameraController is shown in *Listing 3*. This takes an int 'timepoint' parameter, used to save the image under the iterator passed from main.py to prevent it from being overwritten on the timelapse loop's subsequent iteration.
+
+An image is taken and stored in request. The flush parameter is set to True. This controls exposure start time of pixel in a way that is consistent across images at different timepoints. I do not want to disable this, but it may be playing a role in the overexposure issue. This will be investigated and rectified if necessary in checkpoint 2.
+The flush parameter is described in the documentation as such: 
+        'By setting the flush parameter to True we can invoke
+         exactly this behaviour - that the first pixel started being exposed no earlier than the moment we call the function.
+         Alternatively, we can pass an explicit timestamp in nanoseconds if we have a slightly different instant in time in mind.'
+
+The image is saved at the directory stored in saveLoc in *Listing 2* as a .png, before the buffer is released (as per manual instructions).
+```{python}
+def capture_image(self, timepoint):                           
+        '''
+        
+        '''
+        request = self.picam2.capture_request(flush=True)
+        
+        request.save("main", f"{self.saveLoc}/{timepoint}.png") 
+
+        request.release()
+# end of class definition
+```
+*Listing 3* capture_image method of CameraController class.

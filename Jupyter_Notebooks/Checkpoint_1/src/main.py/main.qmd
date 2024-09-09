@@ -1,0 +1,251 @@
+---
+title: "Main.py Overview"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+**Something to note:** the code blocks in these documents will not successfully execute, simply because the libraries used (neopixel, picamera2, libcamera) are designed to be installed and run on embedded systems like the raspberry pi. Ignore the errors. Also, any modifications to be made to the code (**in this format**) will be implemented and tested after the initial 'over-the-weekend' timelapse is complete, as I do not want to interrupt it by connecting to the pi. 
+
+Also, if using your own virtual enivronment and not 'camera' provided within the project repository, make sure you enable --system-site-packages. Libcamera must be installed system wide. See the [documentation](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf). If using camera, cd to the project directory and input "source camera/bin/activate". If successful, you should see *(camera)* appear as below:
+```{bash}
+raspberrypi@raspberrypi:~/Desktop $ source camera/bin/activate
+(camera) raspberrypi@raspberrypi:~/Desktop $
+```
+
+*Listing 1* imports the relevant python libraries for the project. Firstly I import custom project classes NeopixelController (to control the LED ring) CameraController, and MotorController. For example, the first line imports the CameraController class from src/camera/camera_controller.py. The __init__.py in src/camera (and indeed all the custom classes imported in the project) explicitly defines files as packages, allowing the use of their namespace in the root program 'main.py'. This is not required by python anymore but has been included for clarity when understanding the project's structure. [See](src/map.md) for a markdown schematic outlining the project's structure to get comfortable with the OOP notation used in src/main.py.
+```{python}
+#| error: true
+#| warning: false
+
+from camera.camera_controller import CameraController
+from lighting.neopixel_controller import NeopixelController
+from motor.motor_controller import MotorController
+import argparse
+import sys, os, time
+import datetime
+from picamera2 import Picamera2, Preview
+from libcamera import controls
+```
+*Listing 1*: Importing relevant libraries, where the first three imports are custom classes written specifically for this project.
+
+*Listing 2* is an initial implementation of the ImagingSystem class is defined followed by creating an object instancei in the main body code. This should be considered the 'root' of the programme. Its purpose is to instigate, coordinate, and terminate the operation of the system. As the system grows in complexity, this will act as a control centre.
+```{python}
+#| error: true
+#| warning: false
+
+
+class ImagingSystem:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(
+            prog='ImagingSystem',
+            description='Operator for the imaging system',
+        )
+
+    def timelapse(self):
+        pass
+
+    def cleanup(self):
+        pass
+
+system = ImagingSystem()
+system.timelapse()
+```
+*Listing 2*: Defining the ImagingSystem class, containing: a constructor with an argument parser to facilitate CLI functionality; a 'timelapse' function; a 'cleanup' function to give an opportunity for the programme to terminate itself cleanly. An instance of the ImagingSystem class 'system' is created in the main body, before calling system's timelapse function. Note that 'self' is implicit here with the '.' method notation.
+
+Let's focus on the constructor '__init__(self)' for now (*Listing 3*). Using the 'argparse' module from listing 1 ([see documentation here:](https://docs.python.org/3/library/argparse.html)), arguments are stored in the 'self.parser' class member, which is an ArgumentParser object that uses associated'.add_argument()' method to store command-line inputs as variables in the programme. This allows the user to specify the parameters of their timelapse. For example, if the -n flag is used when running the programme from the command line, self.parser stores "-n **this**" string under the variable name n, which can be accessed in the programme by 'self.parser.args.name'. Continuing with this example, 'print(self.parser.args.name)' would print "this" to standard output.
+
+It should be noted that the logic for each of these CLI arguments hasn't yet been implemented fully in the programme. Nonetheless they are included, and will likely be used as development continues, or as the system evolves. 
+
+For now, instructions will be sent to the imaging system manually through the CLI, but with time the idea is that the programme becomes increasingly autonomous, where the only interaction with the system's software will occur when offloading experiment data and results.
+
+```{python}
+#| error: true
+#| warning: false
+
+
+class ImagingSystem:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(
+            prog='ImagingSystem',
+            description='Operator for the imaging system',
+        )  
+        self.parser.add_argument("-t", "--timelapse", help="Initiate a timelapse. See manual for additional parameters.", action='store_true')
+
+        self.parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
+        self.parser.set_defaults(u = 's')
+
+        self.parser.add_argument("-d", "--duration", help="Specify the the total time period you want the system to image for. E.g. the CLI input \"-u  h -d 4\" will create a 4-hour timelapse. ", type=int)
+        self.parser.set_defaults(d = 0)
+
+        self.parser.add_argument("-s", "--samples", help="Specify at how many timepoints you wish to take an image. E.g. \"-i 80\" creates a timelapse with 80 images at evenly spaced timepoints throughout the timelapse", type=int)
+        self.parser.set_defaults(i = 0)
+
+        self.parser.add_argument("-p", "--path", help="Specify a file path to which the timelapse images will be saved. Default = ./\"images\"")
+        self.parser.set_defaults(p = 'images')
+
+        self.parser.add_argument("-n", "--name", help="Unique identifier for your timelapse", type=str)
+
+        # rest of code...
+```
+*Listing 3*: Declaration of 'self.parser' member of the ImagingSystem class, which is an ArgumentParser object defined by the 'argparse' library important in *Listing 1*. As the project develops, these arguments (timelapse, units, duration, samples, path, name) are to be integrated into the programme's functionality.
+
+Continuing in setting up the class constructor (*Listing 4*), some additional useful class members are declared. 
+
+Firstly, calling the ArgumentParser method .parse_args() on the self.parser member, inputs from the command-line are stored in self.parser under the namespace 'args' (hence these arguments can be accessed as described above *Listing 2*).
+
+Next, the interval at which images are to be taken by the system is calculated by dividing the 'self.args.duration' (i.e. the command-line input specifying the duration of timelapse after the -d flag) by the total number of images the user wishes to be taken ('self.args.samples'). This is stored in the 'self.interval' member.
+
+The corresponding date for the timelapse is stored in 'self.currentDate' which uses the 'datetime' module imported in *Listing 1* ([see documentation here:](https://docs.python.org/3/library/datetime.html))
+
+Finally self.saveLoc stores the directory to which timelapse images will be saved using the 'os' library imported in *Listing 1* ([see documentation here:](https://docs.python.org/3/library/os.html)). For now, this defaults to './images/{self.currentDate}' (where: './' means within the project directory; '{variable}' allows you to insert a variable into a string, by using a [string literal](https://bic-berkeley.github.io/psych-214-fall-2016/string_literals.html) " f'string {variable}' "), or the path can be specified using the '-p' or '--path' flag when running the program in the CLI. This allows the programme to save timelapse images at the specified directory within a folder named the date that the timelapse started in the format day-month-year. 
+
+**If the -name flag is used, I will add this to 'self.saveLoc' to prevent separate timelapses that would have the same path from being saved to the same folder (e.g. when self.parser.args.path and self.parser.args.currentDate are the same for both timelapses).**
+
+
+```{python}
+#| error: true
+#| warning: false
+
+        # ...preceding code
+        self.args = self.parser.parse_args()
+        self.interval = self.args.duration / self.args.samples
+        self.currentDate = str(datetime.datetime.today().strftime('%d-%m-%Y'))
+
+        self.saveLoc = os.path.join(self.args.path, self.currentDate)
+        # rest of code...
+```
+*Listing 4*: Declaration of class members 'args', 'interval', 'currentDate', and 'saveLoc'.
+
+The first if statement in *Listing 5* checks if the path specified in the CLI exists, and if it does not, it creates it using the os library. 
+
+The second if statement checks if the path stored in 'self.saveLoc' exists. Note that self.saveLoc and the arguments passed to os.path.exists 'self.args.path', "/", self.currentDate are the same. **I will modify the second if statement so that it simply takes self.saveLoc as an argument for simplicity and consistency.** 
+
+```{python}
+#| error: true
+#| warning: false
+        # ...preceding code
+        if not os.path.exists(self.args.path):
+            os.makedirs(self.args.path)
+
+        if not os.path.exists(self.args.path + "/" + self.currentDate):
+            # If current date directory does not exist in specified save file path, create it
+            os.makedirs(self.saveLoc)  
+        # rest of code...
+```
+
+*Listing 6* underpins one of the more significant changes I could make to the programme so far. The programme is organised into files, where each file defines a class, each class an implementation of some components of the system. I previously described 'main.py' as a control centre/root, and in (map.md) these files are shown as siblings to this root. As seen in *Listing 6*, the CameraController object is passed a member from the ImagingSystem class ('self.saveLoc'). In this way, the camera class is dependent on the ImagingSystem class, but this isn't explicit in the code. It would make more sense within an OOP paradigm to define CameraController as a child class of ImagingSystem. This way, CameraController instances could access Protected and Public members of ImagingSystem (for example, ImagingSystem.saveLoc) without the need to pass ImagingSystem.saveLoc as a parameter to the CameraController constructor. With this said, it might be overkill as it is now given only one member is being passed - but as you will see in *Listing 7*, the two classes continue to interact.
+```{python}
+#| error: true
+#| warning: false
+        # ...preceding code
+        self.cameraController = CameraController(self.saveLoc) # configures camera module
+        self.lightController = NeopixelController()
+        self.motorController = MotorController()
+    # end of class contructor.
+```
+*Listing 6* instantiating 3 sibling objects: cameraController, lightController, and motorController.
+
+*Listing 7* forms the timelapse function of the ImagingSystem. It uses a for loop, where the call to range() on self.args.samples returns integers from 0 (this is the default) to whatever the samples CLI input is. Then, the neopixel light object calls the on() method to turn on the light. The print statement uses a string literal to print the progress of the timelapse to standard out. The cameraController object calls its capture_image() method which takes the (timepoint + 1) as an argument - this is used to save the image using methods from the picamera module under (this prevents the next image from being overwritten on the next iteration). After the imaging itself is handled by the cameraController, the light is turned off, and the programme pauses using sleep() based on the time interval between images calculated in *Listing 4*. After all the imges have been taken, a call to the cleanup() method of the ImagingSystem class is made.
+```{python}
+#| error: true
+#| warning: false
+
+    def timelapse(self):
+        for timepoint in range(self.args.samples):
+            self.lightController.on()
+
+            print(f"Taking image {timepoint+1}")
+            self.cameraController.capture_image(timepoint+1)
+
+            self.lightController.off()
+                
+            time.sleep(self.interval)
+
+        self.cleanup()
+
+  
+```
+*Listing 7* the timelapse method of the ImagingSystem class.
+
+*Listing 8* shows the cleanup() method. Firstly, a string is printed to standard out. Then the stop() method of the picam2 library is called, as per the [documentation](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf). The exit() method of sys library terminates the program, where 0 indicates successful termination (not necessary, but nice for clarity to show this is the intended point for the programme to terminate).
+```{python}
+#| error: true
+#| warning: false
+
+    def cleanup(self):
+            print("Timelapse is complete. Now exiting.")
+            self.cameraController.picam2.stop()
+            sys.exit(0)
+# main body as in Listing 2
+  
+```
+*Listing 8* cleanup method of the ImagingSystem class.
+
+**Usage Example (36hr timelapse, 1 image/hr):**
+- Note the programme MUST be run as root using the SUDO command.
+
+```{bash}
+raspberrypi@raspberrypi:~/Desktop $ cd SC_TSL_06082024_Imaging-System/
+raspberrypi@raspberrypi:~/Desktop/SC_TSL_06082024_Imaging-System $ ls
+Archive  camera  GoHREPs  images  Jupyter_Notebooks  Physical_System_Design  README.md  src
+raspberrypi@raspberrypi:~/Desktop/SC_TSL_06082024_Imaging-System $ source camera/bin/activate
+(camera) raspberrypi@raspberrypi:~/Desktop/SC_TSL_06082024_Imaging-System $ sudo camera/bin/python3 src/main.py -t -u s -d 129600 -s 36 -p ~/Desktop/36_hr_weekend_test
+[2:18:52.883082236] [2401]  INFO Camera camera_manager.cpp:313 libcamera v0.3.0+65-6ddd79b5
+[2:18:52.927986121] [2408]  WARN RPiSdn sdn.cpp:40 Using legacy SDN tuning - please consider moving SDN inside rpi.denoise
+[2:18:52.929969699] [2408]  INFO RPI vc4.cpp:446 Registered camera /base/soc/i2c0mux/i2c@1/imx519@1a to Unicam device /dev/media4 and ISP device /dev/media0
+[2:18:52.930040420] [2408]  INFO RPI pipeline_base.cpp:1104 Using configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[2:18:52.932840633] [2401]  INFO Camera camera_manager.cpp:313 libcamera v0.3.0+65-6ddd79b5
+[2:18:52.973214055] [2413]  WARN RPiSdn sdn.cpp:40 Using legacy SDN tuning - please consider moving SDN inside rpi.denoise
+[2:18:52.975601719] [2413]  INFO RPI vc4.cpp:446 Registered camera /base/soc/i2c0mux/i2c@1/imx519@1a to Unicam device /dev/media4 and ISP device /dev/media0
+[2:18:52.975708125] [2413]  INFO RPI pipeline_base.cpp:1104 Using configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+{'format': 'BGR888', 'size': (4656, 3496)}
+[2:18:52.983595401] [2401]  INFO Camera camera.cpp:1183 configuring streams: (0) 4656x3496-BGR888 (1) 4656x3496-SRGGB10_CSI2P
+[2:18:52.984159299] [2413]  INFO RPI vc4.cpp:621 Sensor: /base/soc/i2c0mux/i2c@1/imx519@1a - Selected sensor format: 4656x3496-SRGGB10_1X10 - Selected unicam format: 4656x3496-pRAA
+Taking image 1
+Taking image 2
+Taking image 3
+Taking image 4
+Taking image 5
+Taking image 6
+Taking image 7
+Taking image 8
+Taking image 9
+Taking image 10
+Taking image 11
+Taking image 12
+Taking image 13
+Taking image 14
+Taking image 15
+Taking image 16
+Taking image 17
+Taking image 18
+Taking image 19
+Taking image 20
+Taking image 21
+Taking image 22
+Taking image 23
+Taking image 24
+Taking image 25
+Taking image 26
+Taking image 27
+Taking image 28
+Taking image 29
+Taking image 30
+Taking image 31
+Taking image 32
+Taking image 33
+Taking image 34
+Taking image 35
+Taking image 36
+Timelapse is complete. Now exiting.
+```
+
+
+**Images at specified path:**
+```{bash}
+(camera) raspberrypi@raspberrypi:~/Desktop $ ls 36_hr_weekend_test/06-09-2024/
+10.png  12.png  14.png  16.png  18.png  1.png   21.png  23.png  25.png  27.png  29.png  30.png  32.png  34.png  36.png  4.png  6.png  8.png
+11.png  13.png  15.png  17.png  19.png  20.png  22.png  24.png  26.png  28.png  2.png   31.png  33.png  35.png  3.png   5.png  7.png  9.png
+(camera) raspberrypi@raspberrypi:~/Desktop $ 
+```

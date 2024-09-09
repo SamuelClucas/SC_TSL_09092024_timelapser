@@ -1,0 +1,58 @@
+---
+title: "Creating my First Convolutional Neural Network (CNN) with Pytorch"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+CNNs are less brittle than traditional deep neural networks. Traditional NNs struggle to accurately classify images that don't closely resemble images used to train the network. For example, the network may correctly classify an object within an image belonging to the training dataset as 'trousers'. Translate this image somehow so the pixels in the translated image don't perfectly align with the former (e.g. slide the image 5 pixels to the left) and the new prediction made by the NN will likely be wrong. 
+
+This is no good for the imaging system. 
+
+Convolutional neural networks (CNNs) make use of convolutions/matrix multiplications as 'filters' (also called kernels, or windows). The values of the smaller 'filter' matrices are initialised randomly, just like the weights of the hidden layers in a traditional NN. The filter weights are learned by the network during training.
+
+```{python}
+import torchvision
+import torch.nn as nn
+import torch
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms,models,datasets
+from PIL import Image
+from torch import optim
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+import cv2, glob, numpy as np, pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline 
+from glob import glob 
+```
+Importing necessary modules to build basic CNN as on page 149 of 'Modern CV with pytorch'. 
+- The magic function "%matplotlib inline" enables plotting within jupyter notebook shells.
+
+As in the book on page 133, I will initially use the Fashion-FMNIST dataset included in the torchvision package.
+
+```{python}
+data_folder = '../Data/FashionFMNIST'
+fmnist = datasets.FashionMNIST(data_folder, download=True, train=True)
+```
+Fetches FMNIST dataset from datasets and store in data_folder. 'train=True' specifies we only want to download the images.
+
+```{python}
+tr_images = fmnist.data
+tr_targets = fmnist.targets
+```
+Stores labelled 'target' images in tr_targets. Stores images in tr_images.
+
+```{python}
+class FMNISTDataset(Dataset):
+    def __init__(self, x, y):
+        x = x.float()/255
+        x = x.view(-1,1,28,28)
+        self.x, self.y = x, y
+    def __getitem__(self, ix):
+        x, y = self.x[ix], self.y[ix]
+        return x.to(device), y.to(device)
+    def __len__(self):
+        return len(self.x)
+```

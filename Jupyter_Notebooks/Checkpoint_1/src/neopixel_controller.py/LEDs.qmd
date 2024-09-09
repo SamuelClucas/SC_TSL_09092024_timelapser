@@ -1,0 +1,45 @@
+---
+title: "Neopixel_controller.py Overview"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+I recommend following [this guide](https://thepihut.com/blogs/raspberry-pi-tutorials/using-neopixels-with-the-raspberry-pi?srsltid=AfmBOop8FCIniAOPGgAvqOdNrJBvGcflZbIhPGeNI91ULHHpDQtYILzR
+).
+
+See [documentation](https://docs.circuitpython.org/projects/neopixel/en/latest/) here.
+
+```{python}
+import board, neopixel
+import time
+import sys
+```
+*Listing 1* importing libraries for NeopixelController class.
+
+*Listing 2* shows the class definition. The class is very simple, and could be integrated into the camera controller. For now it is its own class in it own file for modularity and clarity.
+
+The neopixel LED ring takes two inputs (DI/'digital input'(blue wire) and '+' (red wire)). DI is connected to GPIO18/pin 12 ('board.D18'). The second argument of the NeoPixel() constructor is the number of LEDs in the ring (8) [see here for constructor documentation](https://docs.circuitpython.org/projects/neopixel/en/latest/api.html#neopixel.NeoPixel).
+
+Its only output is a brown ground cable. Many suggest level conversion is necessary from 3.3V to 5V, but this isn't the case here.
+
+```{python}
+class NeopixelController:
+    def __init__(self):
+        self.light = neopixel.NeoPixel(board.D18, 8)
+
+    def on(self):
+         self.light.fill((255,255,255))
+        
+    def off(self):
+         self.light.fill((0,0,0))
+
+    def flash(self):  
+            self.light.fill((255,255,255))
+            time.sleep(1.5)
+            self.light.fill((0,0,0))
+            time.sleep(1.5)
+# end of class definition
+```
+*Listing 2* NeopixelController class definition.
