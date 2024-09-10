@@ -1,6 +1,7 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='timelapsEr',
-    packages=find_packages()
+    packages=['timelapsEr']
+    scripts=['start_timelapse.py']
 )
