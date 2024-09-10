@@ -16,7 +16,10 @@ Usage Examples:
     Basic use:
         
 """
-import timelapsEr as tl
+from timelapsEr.camera_controller import CameraController
+from timelapsEr.get_date import get_now, get_today
+from timelapsEr.neopixel_controller import NeopixelController as light 
+
 
 import argparse
 import sys, os, time
@@ -27,7 +30,6 @@ parser = argparse.ArgumentParser(
     prog='TimelapsEr',
     description='Operator for the imaging system',
 )  
-parser.add_argument("-t", "--timelapse", help="Initiate a timelapse. See manual for additional parameters.", action='store_true')
 parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
 parser.add_argument("-d", "--duration", help="Specify the the total time period you want the system to image for. E.g. the CLI input \"-u  h -d 4\" will create a 4-hour timelapse. ", type=int)
 parser.add_argument("-s", "--samples", help="Specify at how many timepoints you wish to take an image. E.g. \"-i 80\" creates a timelapse with 80 images at evenly spaced timepoints throughout the timelapse", type=int)
@@ -37,6 +39,7 @@ parser.add_argument("-n", "--name", help="Unique identifier for this timelapse",
 parser.set_defaults(d = 0)
 parser.set_defaults(i = 0)
 parser.set_defaults(u = 's')
+parser.set_defaults(p = 'Images')
 parser.set_defaults(n = '')
 
 args = parser.parse_args()
@@ -52,7 +55,7 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-saveLocation = os.path.join(args.path, args.name, tl.get_date.get_today(), tl.get_date.get_now())
+saveLocation = os.path.join(args.path, args.name, get_today(), get_now())
 
 if not os.path.exists(saveLocation):
     # If current path does not exist in specified save file path, create it
@@ -60,17 +63,17 @@ if not os.path.exists(saveLocation):
 
 def timelapse(saveLocation):        
     # instantiate timelapsEr objects
-    cameraController = tl.CameraController(saveLocation) # configures camera module
-    lightController = tl.NeopixelController()
-    motorController = tl.MotorController()
+    cameraController = CameraController(saveLocation) # configures camera module
+    light = light()
+
     # imaging loop
     for timepoint in range(args.samples):
-        lightController.on()
+        light.on()
 
-        print(f"Taking image {timepoint+1} at {tl.get_date.get_now()}")
+        print(f"Taking image {timepoint+1} at {get_now()}")
         cameraController.capture_image(timepoint+1)
 
-        lightController.off()
+        light.off()
                 
         time.sleep(interval)
     # cleanup
