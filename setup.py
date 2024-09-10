@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='TimelapsEr'
+    name='TimelapsEr',
     packages=find_packages()
 )
