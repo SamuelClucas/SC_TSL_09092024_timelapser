@@ -16,7 +16,9 @@ Usage Examples:
     Basic use:
         
 """
-from ..timelapsEr import CameraController, light, get_today, get_now
+from ..timelapsEr.camera_controller import CameraController
+from ..timelapsEr.neopixel_controller import NeopixelController as light
+from ..timelapsEr.get_date import get_today, get_now
 
 import argparse
 import sys, os, time
@@ -50,7 +52,7 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-saveLocation = os.path.join(args.path, args.name, get_date.get_today(), get_date.get_now())
+saveLocation = os.path.join(args.path, args.name, get_today(), get_now())
 
 if not os.path.exists(saveLocation):
     # If current path does not exist in specified save file path, create it
@@ -58,14 +60,14 @@ if not os.path.exists(saveLocation):
 
 def timelapse(saveLocation):        
     # instantiate timelapsEr objects
-    camera = camera_controller.CameraController(saveLocation) # configures camera module
-    light = neopixel_controller.NeopixelController()
+    camera = CameraController(saveLocation) # configures camera module
+    light = light()
 
     # imaging loop
     for timepoint in range(args.samples):
         light.on()
 
-        print(f"Taking image {timepoint+1} at {get_date.get_now()}")
+        print(f"Taking image {timepoint+1} at {get_now()}")
         camera.capture_image(timepoint+1)
 
         light.off()
