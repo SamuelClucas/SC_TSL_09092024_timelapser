@@ -1,5 +1,8 @@
 TimelapsEr/
 │
+├── scripts/
+│   ├── start_timelapse.py
+│   │
 ├── timelapsEr/
 │   ├── __init__.py
 │   │
@@ -8,9 +11,6 @@ TimelapsEr/
 │   ├── neopixel_controller.py
 │   │
 │   ├── motor_controller.py
-│
-├── scripts/
-│   ├── start_timelapse.py
 │
 ├── tests/
 

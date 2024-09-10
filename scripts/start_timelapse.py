@@ -16,9 +16,9 @@ Usage Examples:
     Basic use:
         
 """
-from ..timelapsEr.camera_controller import CameraController
-from ..timelapsEr.neopixel_controller import NeopixelController as light
-from ..timelapsEr.get_date import get_today, get_now
+from timelapsEr.camera_controller import CameraController
+from timelapsEr.neopixel_controller import NeopixelController as light
+from timelapsEr.get_date import get_today, get_now
 
 import argparse
 import sys, os, time
