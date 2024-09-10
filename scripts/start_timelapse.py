@@ -20,7 +20,6 @@ from timelapsEr.camera_controller import CameraController
 from timelapsEr.get_date import get_now, get_today
 from timelapsEr.neopixel_controller import NeopixelController as light 
 
-
 import argparse
 import sys, os, time
 from picamera2 import Picamera2, Preview
