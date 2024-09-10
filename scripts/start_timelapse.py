@@ -17,7 +17,7 @@ Usage Examples:
         
 """
 from timelapsEr.camera_controller import CameraController
-from timelapsEr.neopixel_controller import NeopixelController as light
+from timelapsEr.neopixel_controller import NeopixelController 
 from timelapsEr.get_date import get_today, get_now
 
 import argparse
@@ -59,7 +59,7 @@ if not os.path.exists(saveLocation):
 def timelapse(saveLocation):        
     # instantiate timelapsEr objects
     camera = CameraController(saveLocation) # configures camera module
-    light = light()
+    light = NeopixelController()
 
     # imaging loop
     for timepoint in range(args.samples):
