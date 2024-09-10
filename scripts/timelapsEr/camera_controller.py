@@ -1,6 +1,6 @@
 from picamera2 import Picamera2, Preview
 from libcamera import controls
-import get_date 
+from timelapsEr import get_date
 '''
 See documentation here: https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf
 
