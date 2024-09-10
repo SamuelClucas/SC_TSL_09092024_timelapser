@@ -16,12 +16,10 @@ Usage Examples:
     Basic use:
         
 """
-import timelapsEr as tl
+from timelapsEr import *
 
 import argparse
 import sys, os, time
-from picamera2 import Picamera2, Preview
-from libcamera import controls
 
 parser = argparse.ArgumentParser(
     prog='TimelapsEr',
@@ -60,8 +58,8 @@ if not os.path.exists(saveLocation):
 
 def timelapse(saveLocation):        
     # instantiate timelapsEr objects
-    camera = tl.CameraController(saveLocation) # configures camera module
-    light = tl.light()
+    camera = CameraController(saveLocation) # configures camera module
+    light = light()
 
     # imaging loop
     for timepoint in range(args.samples):
