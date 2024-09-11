@@ -40,11 +40,11 @@ class CameraController:
         print(sharpness)
                                
         success = self.picam2.autofocus_cycle()
-        request = self.picam2.capture_request(flush=True)
-        metadata = request.get_metadata()
-        lensPos = metadata.get("LensPosition")
-        print(lensPos)
+        #request = self.picam2.capture_request(flush=True)
+        #metadata = request.get_metadata()
+        #lensPos = metadata.get("LensPosition")
+        #print(lensPos)
         
-        request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") # illegal filename characters n
+        #request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") # illegal filename characters n
 
-        request.release()
+        #request.release()
