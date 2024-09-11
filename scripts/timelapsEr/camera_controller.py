@@ -38,6 +38,6 @@ class CameraController:
         metadata = request.get_metadata()
         print(request.get_metadata())
         
-        request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") 
+        request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") # illegal filename characters n
 
         request.release()
