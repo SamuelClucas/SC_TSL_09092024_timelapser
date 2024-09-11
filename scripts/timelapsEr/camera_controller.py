@@ -17,7 +17,7 @@ class CameraController:
         self.config = self.picam2.create_still_configuration() 
         
         #self.picam2.set_controls({"AeEnable": True, "AwbEnable": True, "FrameRate": 1.0, "AfMode": controls.AfModeEnum.Continuous}) # from Alison's camera_project
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 0.0}
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 0.0})
         self.picam2.options["quality"] = 95
         print(self.config["main"])
         
