@@ -35,8 +35,8 @@ class CameraController:
         #np.shape(imageArray)                             
 
         request = self.picam2.capture_request(flush=True)
-        #metadata = request.get_metadata()
-        #print(request.get_metadata())
+        metadata = request.get_metadata()
+        print(request.get_metadata())
         
         request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") 
 
