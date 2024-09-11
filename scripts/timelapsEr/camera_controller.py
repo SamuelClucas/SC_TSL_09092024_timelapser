@@ -10,7 +10,7 @@ See documentation here: https://datasheets.raspberrypi.com/camera/picamera2-manu
 
 class CameraController:
     def __init__(self, path):
-        STILL = libcamera.StreamRole.StillCapture
+        #STILL = libcamera.StreamRole.StillCapture
 
         self.saveLocation = path
         # initialise camera
