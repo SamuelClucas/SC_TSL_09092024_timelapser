@@ -17,8 +17,8 @@ class CameraController:
         self.config = self.picam2.create_still_configuration() 
         
         #self.picam2.set_controls({"AeEnable": True, "AwbEnable": True, "FrameRate": 1.0, "AfMode": controls.AfModeEnum.Continuous}) # from Alison's camera_project
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual })
-        self.picam2.set_controls({"LensPosition": 4})
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Auto })
+        
         
         self.picam2.options["quality"] = 95
         print(self.config["main"])
@@ -35,7 +35,8 @@ class CameraController:
 
         #imageArray = self.picam2.capture_array("main")  \ if in future you want to pass the images directly to opencv as arrays, see here*
         #np.shape(imageArray)                             
-
+        success = self.picam2.autofocus_cycle()
+        
         request = self.picam2.capture_request(flush=True)
         metadata = request.get_metadata()
         lensPos = metadata.get("LensPosition")
