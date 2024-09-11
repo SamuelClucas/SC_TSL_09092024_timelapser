@@ -10,37 +10,6 @@ See documentation here: https://datasheets.raspberrypi.com/camera/picamera2-manu
 
 class CameraController:
     def __init__(self, path):
-        
-        camera = libcamera.Camera().id()
-        
-        
-
-        
-
-        camera.acquire()
-        config = camera.generateConfiguration(libcamera.StreamRole.StillCapture)
-        camera.controls.AfMode = 1
-        camera.controls.AfSpeed = 1
-        camera.controls.AfTrigger
-
-        camera.start()
-        image = camera.createRequest
-        #camera.queueRequest()
-
-        camera.stop()
-
-        camera.release()
-        
-
-        
-        
-
-
-
-
-
-        time.sleep(2)
-
         self.saveLocation = path
         # initialise camera
         self.picam2 = Picamera2()
@@ -49,7 +18,7 @@ class CameraController:
         
         self.config = self.picam2.create_still_configuration() 
         
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Auto, "AeEnable": True, "AwbEnable": True})
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "AeEnable": True, "AwbEnable": True})
         
         self.picam2.options["quality"] = 95
         print(self.config["main"]) # format is BGR888
@@ -62,8 +31,9 @@ class CameraController:
 
     def capture_image(self, timepoint):
         # capture image logic                        
-        success = self.picam2.autofocus_cycle()
+        #success = self.picam2.autofocus_cycle()
         request = self.picam2.capture_request(flush=True)
+
         metadata = request.get_metadata()
         lensPos = metadata.get("LensPosition")
         print(lensPos)
