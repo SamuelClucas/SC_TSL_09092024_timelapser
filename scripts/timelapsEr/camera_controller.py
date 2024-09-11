@@ -20,7 +20,7 @@ class CameraController:
         
         self.config = self.picam2.create_still_configuration() 
         
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "AeEnable": True, "AwbEnable": True})
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Auto, "AeEnable": True, "AwbEnable": True})
         
         self.picam2.options["quality"] = 95
         print(self.config["main"]) # format is BGR888
@@ -33,7 +33,7 @@ class CameraController:
 
     def capture_image(self, timepoint):
         # capture image logic                        
-        #success = self.picam2.autofocus_cycle()
+        success = self.picam2.autofocus_cycle()
         request = self.picam2.capture_request(flush=True)
 
         metadata = request.get_metadata()
