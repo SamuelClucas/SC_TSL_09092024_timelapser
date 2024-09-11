@@ -20,7 +20,7 @@ class CameraController:
         
         self.config = self.picam2.create_still_configuration() 
         
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Auto, "AeEnable": True, "AwbEnable": True})
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Auto, "AeEnable": True, "AwbEnable": True, "AfSpeed": controls.AfSpeedEnum.Fast})
         
         self.picam2.options["quality"] = 95
         print(self.config["main"]) # format is BGR888
