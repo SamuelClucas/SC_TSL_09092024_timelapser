@@ -17,7 +17,9 @@ class CameraController:
         self.config = self.picam2.create_still_configuration() 
         
         #self.picam2.set_controls({"AeEnable": True, "AwbEnable": True, "FrameRate": 1.0, "AfMode": controls.AfModeEnum.Continuous}) # from Alison's camera_project
-        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": 0.0})
+        self.picam2.set_controls({"AfMode": controls.AfModeEnum.Manual })
+        self.picam2.set_controls({"LensPosition": 0.0})
+        
         self.picam2.options["quality"] = 95
         print(self.config["main"])
         
@@ -36,7 +38,8 @@ class CameraController:
 
         request = self.picam2.capture_request(flush=True)
         metadata = request.get_metadata()
-        print(request.get_metadata())
+        lensPos = metadata.get("LensPosition")
+        print(lensPos)
         
         request.save("main", f"{self.saveLocation}/image_{timepoint}_at_{get_date.get_now()}.png") # illegal filename characters n
 
