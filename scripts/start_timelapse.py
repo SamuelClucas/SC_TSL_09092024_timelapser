@@ -42,8 +42,8 @@ for timepoint in range(args.samples):
     light.fill((255,255,255))
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
-    cmd = 'bash libcamera-still --autofocus-mode=continuous -e --datetime -o {}'.format(args.path)
-    subprocess.run(shlex.split(cmd), shell=True)
+    
+    subprocess.call(['bash', './libcamera_timelapse.sh', args.path])
 
     light.fill((0,0,0))
                 
