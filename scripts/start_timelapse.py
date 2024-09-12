@@ -42,7 +42,7 @@ for timepoint in range(args.samples):
 
     print(f"Taking image {timepoint+1}. Saving in format 'MMDDhhmmss.png'.")
     
-    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', args.path])
+    subprocess.call(['bash', './scripts/libcamera_still_capture.sh', args.path])
 
     light.fill((0,0,0))
                 
