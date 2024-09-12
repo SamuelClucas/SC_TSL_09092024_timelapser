@@ -29,10 +29,10 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-saveLocation = args.path
-if not os.path.exists(saveLocation):
+
+if not os.path.exists(args.path):
     # If current path does not exist in specified save file path, create it
-    os.makedirs(saveLocation)
+    os.makedirs(args.path)
 
 light = neopixel.NeoPixel(board.D18, 8) 
 
@@ -40,9 +40,9 @@ light = neopixel.NeoPixel(board.D18, 8)
 for timepoint in range(args.samples):
     light.fill((255,255,255))
 
-    print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
+    print(f"Taking image {timepoint+1}. Saving in format 'MMDDhhmmss.png'.")
     
-    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation])
+    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', args.path])
 
     light.fill((0,0,0))
                 
