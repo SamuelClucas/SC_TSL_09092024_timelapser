@@ -1,9 +1,30 @@
 #!/usr/bin/env python
-import argparse, board, neopixel
-import sys, os, time, datetime
+
+"""
+
+start_timelapse
+
+A utility for running a timelapse based on specified input parameters.
+
+
+See the help:
+
+    timelapse --help
+
+Usage Examples:
+
+    Basic use:
+        
+"""
+from timelapsEr.camera_controller import CameraController
+from timelapsEr.neopixel_controller import NeopixelController 
+from timelapsEr.get_date import get_today, get_now
+
+import argparse
+import sys, os, time
 
 parser = argparse.ArgumentParser(
-    prog='start_timelapse.py',
+    prog='TimelapsEr',
     description='Operator for the imaging system',
 )  
 parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
@@ -29,29 +50,34 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-if not os.path.exists(args.path):
+saveLocation = os.path.join(args.path, get_today(), get_now())
+
+if not os.path.exists(saveLocation):
     # If current path does not exist in specified save file path, create it
-    os.makedirs(args.path)
+    os.makedirs(saveLocation)
 
+def timelapse(saveLocation):        
+    # instantiate timelapsEr objects
+    camera = CameraController(saveLocation) # configures camera module
+    light = NeopixelController()
 
-light = neopixel.NeoPixel(board.D18, 8) 
+    # imaging loop
+    for timepoint in range(args.samples):
+        light.on()
 
-# imaging loop
-for timepoint in range(args.samples):
-    light.fill((255,255,255))
+        print(f"Taking image {timepoint+1} at {get_now()}")
+        camera.capture_image(timepoint+1)
 
-    print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
-    os.system('bash', 'libcamera_timelapse.sh', args.path)
-
-    light.fill((0,0,0))
+        light.off()
                 
-    time.sleep(interval)
-# cleanup
-print("Timelapse is complete. Now exiting.")
-
-sys.exit(0)
+        time.sleep(interval)
+    # cleanup
+    print("Timelapse is complete. Now exiting.")
+    camera.picam2.stop()
+    sys.exit(0)
     
-
+if __name__ == '__main__':           
+    timelapse(saveLocation)
 
 
 
