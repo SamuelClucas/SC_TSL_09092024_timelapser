@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, board, neopixel
-import sys, os, subprocess, time, datetime
+import sys, os, subprocess, shlex, time, datetime
 
 parser = argparse.ArgumentParser(
     prog='start_timelapse.py',
@@ -42,7 +42,8 @@ for timepoint in range(args.samples):
     light.fill((255,255,255))
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
-    subprocess.run(["libcamera-still", "--autofocus-mode=continuous", "-e", "--datetime", "-o", {args.path}], shell=True)
+    cmd = 'bash libcamera-still m --autofocus-mode=continuous -e --datetime -o {}'.format(args.path)
+    subprocess.call(shlex.split(cmd))
 
     light.fill((0,0,0))
                 
