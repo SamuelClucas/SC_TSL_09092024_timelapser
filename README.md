@@ -2,15 +2,15 @@ This repo documents the development of the programme that runs the
 imaging system [documented 
 here](https://github.com/SamuelClucas/SC_TSL_06082024_Imaging-System)
 
-- See [scripts/timelapsEr/](scripts/timelapsEr/) for class implementations.
-- See [scripts/](scripts/) for utility programmes that run the 
+- See [scripts/start_timelapse.py](scripts/start_timelapse.py) for running 
 timelapse.
+- See [scripts/libcamera_timelapse.sh](scripts/libcamera_timelapse.sh) for 
+bash libcamera command that handles image capture.
 
 For a more detailed overview of programme development, see 
 [Jupyter_Notebooks/README.md](Jupyter_Notebooks/README.md).
 
 [camera/](camera/) is the virtual environment currently being used for 
-the 
-project.
+the project.
 
-See [tests/](tests/) for unit testing..
+See [tests/](tests/) for unit testing.
