@@ -42,7 +42,7 @@ for timepoint in range(args.samples):
     light.fill((255,255,255))
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
-    filename = f'{timepoint:0>range(args.samples)}'
+    filename = f"{timepoint:0>range(args.samples)}"
     
     subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation, filename])
 
