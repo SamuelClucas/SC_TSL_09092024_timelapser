@@ -29,7 +29,7 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-saveLocation = os.path.join(args.path, str(datetime.datetime.today()))
+saveLocation = args.path
 if not os.path.exists(saveLocation):
     # If current path does not exist in specified save file path, create it
     os.makedirs(saveLocation)
@@ -42,7 +42,7 @@ for timepoint in range(args.samples):
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
     
-    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation, str(timepoint)])
+    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation])
 
     light.fill((0,0,0))
                 
