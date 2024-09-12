@@ -43,7 +43,7 @@ for timepoint in range(args.samples):
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
     
-    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation + str(timepoint:0>range(args.samples)) + '.png'])
+    subprocess.call(['bash', './scripts/libcamera_timelapse.sh', saveLocation + str(timepoint) + '.png'])
 
     light.fill((0,0,0))
                 
