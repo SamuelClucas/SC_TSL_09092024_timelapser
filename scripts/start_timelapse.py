@@ -29,7 +29,7 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
-
+os.path.join(self.args, str(datetime.datetime.today().strftime('%d-%m-%Y:%Hhr%Mmin%')))
 if not os.path.exists(args.path):
     # If current path does not exist in specified save file path, create it
     os.makedirs(args.path)
