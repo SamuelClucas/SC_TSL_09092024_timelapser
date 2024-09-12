@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, board, neopixel
-import sys, os, time, datetime
+import sys, os, subprocess, time, datetime
 
 parser = argparse.ArgumentParser(
     prog='start_timelapse.py',
@@ -29,6 +29,7 @@ elif args.units == 'd':
 if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
     interval = args.duration / args.samples
 
+
 if not os.path.exists(args.path):
     # If current path does not exist in specified save file path, create it
     os.makedirs(args.path)
@@ -41,7 +42,7 @@ for timepoint in range(args.samples):
     light.fill((255,255,255))
 
     print(f"Taking image {timepoint+1} at {str(datetime.datetime.today().strftime('%Hhr%Mmin%Ssec'))}")
-    os.system('bash', 'libcamera_timelapse.sh', args.path)
+    subprocess.call(['bash', 'libcamera_timelapse.sh', args.path])
 
     light.fill((0,0,0))
                 
