@@ -1,3 +1,3 @@
 #!/bin/bash
 
-libcamera-still -n %focus --autofocus-mode=continuous --encoding png -o $1/capture_%04d.png  
+libcamera-still -n true %focus --autofocus-mode=continuous --encoding png -o $1/capture_%04d.png  
