@@ -1,59 +1,157 @@
 #!/usr/bin/env python
-import argparse, board, neopixel
-import sys, os, subprocess, time, datetime
+"""
+Timelapse Camera Control System
 
-parser = argparse.ArgumentParser(
-    prog='start_timelapse.py',
-    description='Operator for the imaging system',
-)  
-parser.add_argument("-u", "--units", help="When specifying timelapse parameters, declare the units of time here for clarity. E.g. s for seconds, m for minutes, h for hours, d for days", type=str)
-parser.add_argument("-d", "--duration", help="Specify the the total time period you want the system to image for. E.g. the CLI input \"-u  h -d 4\" will create a 4-hour timelapse. ", type=int)
-parser.add_argument("-s", "--samples", help="Specify at how many timepoints you wish to take an image. E.g. \"-i 80\" creates a timelapse with 80 images at evenly spaced timepoints throughout the timelapse", type=int)
-parser.add_argument("-p", "--path", help="Specify a file path to which the timelapse images will be saved. Default = ./\"images\"")
+This script controls a camera system for creating timelapses using a NeoPixel LED ring for illumination.
+It allows specification of timelapse duration, number of samples, and save location, with configurable
+time units (seconds, minutes, hours, days).
 
-parser.set_defaults(d = 0)
-parser.set_defaults(i = 0)
-parser.set_defaults(u = 's')
-parser.set_defaults(p = 'Images')
+Dependencies:
+    - board: For hardware GPIO access
+    - neopixel: For LED control
+    - argparse: For CLI argument parsing
+    - subprocess: For executing camera capture commands
+"""
 
-args = parser.parse_args()
+import argparse
+import board
+import neopixel
+import sys
+import os
+import subprocess
+import time
+import datetime
 
-# scaling up timelapse duration to desired time unit (seconds to minutes to hours to days = x * 60 * 60 * 24)
-if args.units == 'm':
-    args.duration *= 60
-elif args.units == 'h':
-    args.duration *= 3600 
-elif args.units == 'd':
-    args.duration *= 86400
+def setup_argument_parser() -> argparse.ArgumentParser:
+    """
+    Configure and return the argument parser for CLI options.
+    
+    Returns:
+        argparse.ArgumentParser: Configured argument parser with timelapse options
+    """
+    parser = argparse.ArgumentParser(
+        prog='start_timelapse.py',
+        description='Operator for the imaging system',
+    )
+    
+    parser.add_argument(
+        "-u", "--units",
+        help="Time units for timelapse parameters (s: seconds, m: minutes, h: hours, d: days)",
+        type=str
+    )
+    parser.add_argument(
+        "-d", "--duration",
+        help="Total time period for imaging (e.g., -u h -d 4 creates a 4-hour timelapse)",
+        type=int
+    )
+    parser.add_argument(
+        "-s", "--samples",
+        help="Number of images to capture at evenly spaced intervals",
+        type=int
+    )
+    parser.add_argument(
+        "-p", "--path",
+        help="File path for saving timelapse images (default: ./Images)",
+        type=str
+    )
 
-if args.samples != 0 and args.duration != 0: # prevents division by 0 and 0 not divisible errors
-    interval = args.duration / args.samples
+    # Set default values
+    parser.set_defaults(d=0)
+    parser.set_defaults(s=0) 
+    parser.set_defaults(u='s')
+    parser.set_defaults(p='Images')
 
+    return parser
 
-if not os.path.exists(args.path):
-    # If current path does not exist in specified save file path, create it
-    os.makedirs(args.path)
+def convert_duration_to_seconds(duration: int, units: str) -> int:
+    """
+    Convert the specified duration to seconds based on the time unit.
+    
+    Args:
+        duration (int): The time duration specified
+        units (str): Time unit (s: seconds, m: minutes, h: hours, d: days)
+    
+    Returns:
+        int: Duration converted to seconds
+    """
+    if units == 'm':
+        return duration * 60
+    elif units == 'h':
+        return duration * 3600 
+    elif units == 'd':
+        return duration * 86400
+    return duration  # Default to seconds
 
-light = neopixel.NeoPixel(board.D18, 8) 
+def ensure_directory_exists(path: str) -> None:
+    """
+    Create the specified directory if it doesn't exist.
+    
+    Args:
+        path (str): Directory path to check/create
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-# imaging loop
-for timepoint in range(args.samples):
-    light.fill((255,255,255))
+def setup_neopixel() -> neopixel.NeoPixel:
+    """
+    Initialize and return the NeoPixel LED ring.
+    
+    Returns:
+        neopixel.NeoPixel: Configured NeoPixel object
+    """
+    return neopixel.NeoPixel(board.D18, 8)
+
+def capture_image(timepoint: int, path: str, light: neopixel.NeoPixel) -> None:
+    """
+    Capture a single image with LED illumination.
+    
+    Args:
+        timepoint (int): Current image number in sequence
+        path (str): Directory to save the image
+        light (neopixel.NeoPixel): NeoPixel LED object for illumination
+    """
+    # Turn on LED illumination
+    light.fill((255, 255, 255))
 
     print(f"Taking image {timepoint+1}. Saving in format 'MMDDhhmmss.png'.")
     
-    subprocess.call(['bash', './scripts/libcamera_still_capture.sh', args.path])
+    # Capture image using external script
+    subprocess.call(['bash', './scripts/libcamera_still_capture.sh', path])
 
-    light.fill((0,0,0))
-                
-    time.sleep(interval)
-# cleanup
-print("Timelapse is complete. Now exiting.")
+    # Turn off LED illumination
+    light.fill((0, 0, 0))
 
-sys.exit(0)
+def main() -> None:
+    """
+    Main function to run the timelapse capture system.
+    """
+    # Parse command line arguments
+    parser = setup_argument_parser()
+    args = parser.parse_args()
+
+    # Convert duration to seconds based on specified units
+    duration_seconds = convert_duration_to_seconds(args.duration, args.units)
+
+    # Initialize interval
+    interval = 0
     
+    # Calculate interval between images if both parameters are non-zero
+    if args.samples != 0 and duration_seconds != 0:
+        interval = duration_seconds / args.samples
 
+    # Ensure save directory exists
+    ensure_directory_exists(args.path)
 
+    # Initialize LED ring
+    light = setup_neopixel()
 
+    # Capture timelapse images
+    for timepoint in range(args.samples):
+        capture_image(timepoint, args.path, light)
+        time.sleep(interval)
 
+    print("Timelapse is complete. Now exiting.")
+    sys.exit(0)
 
+if __name__ == "__main__":
+    main()
