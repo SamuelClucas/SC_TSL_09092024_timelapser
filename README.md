@@ -13,4 +13,3 @@ For a more detailed overview of programme development, see
 [camera/](camera/) is the virtual environment currently being used for 
 the project.
 
-See [tests/](tests/) for unit testing.
